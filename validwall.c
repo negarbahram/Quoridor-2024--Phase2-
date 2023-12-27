@@ -17,6 +17,40 @@ int overLapWall(struct wall newWall) {
         return (wallForEachCell[x][y][0] || wallForEachCell[x + 1][y][0]);
 }
 
+void blockCell(struct wall w) {
+    int x = w.x, y = w.y;
+
+    if (w.dir == 'v' || w.dir == 'V') {
+        wallForEachCell[x][y][3] = 1;
+        wallForEachCell[x][y + 1][3] = 1;
+        wallForEachCell[x - 1][y][1] = 1;
+        wallForEachCell[x - 1][y + 1][1] = 1;
+    }
+    else {
+        wallForEachCell[x][y][0] = 1;
+        wallForEachCell[x + 1][y][0] = 1;
+        wallForEachCell[x][y - 1][2] = 1;
+        wallForEachCell[x + 1][y - 1][2] = 1;
+    }
+}
+
+void unBlockCell(struct wall w) {
+    int x = w.x, y = w.y;
+
+    if (w.dir == 'v' || w.dir == 'V') {
+        wallForEachCell[x][y][3] = 0;
+        wallForEachCell[x][y + 1][3] = 0;
+        wallForEachCell[x - 1][y][1] = 0;
+        wallForEachCell[x - 1][y + 1][1] = 0;
+    }
+    else {
+        wallForEachCell[x][y][0] = 0;
+        wallForEachCell[x + 1][y][0] = 0;
+        wallForEachCell[x][y - 1][2] = 0;
+        wallForEachCell[x + 1][y - 1][2] = 0;
+    }
+}
+
 int validWall(int PlayerSize, Vector2 start, Vector2 end) {
 
     struct wall newWall;
@@ -32,10 +66,16 @@ int validWall(int PlayerSize, Vector2 start, Vector2 end) {
     if (overLapWall(newWall))
         return 0;
 
-    if (!aStarAlgorithm(gameState.player1Pos, gameState.size - 1))
+    blockCell(newWall);
+
+    if (!aStarAlgorithm(gameState.player1Pos, gameState.size - 1)) {
+        unBlockCell(newWall);
         return 0;
-    if (!aStarAlgorithm(gameState.player2Pos, 0))
+    }
+    if (!aStarAlgorithm(gameState.player2Pos, 0)) {
+        unBlockCell(newWall);
         return 0;
+    }
 
     return 1;
 }

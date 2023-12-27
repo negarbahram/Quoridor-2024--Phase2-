@@ -8,7 +8,7 @@ Vector2 wallEndPoint = {0, 0};
 
 
 void invalidInput() {
-    Sound Error = LoadSound("errorsound.mp3");
+    Sound Error = LoadSound("resources/errorsound.wav");
     PlaySound(Error);
 }
 
@@ -99,40 +99,6 @@ void drawBoard(int PlayerSize) {
     EndDrawing();
 }
 
-void blockCell(struct wall w) {
-    int x = w.x, y = w.y;
-
-    if (w.dir == 'v' || w.dir == 'V') {
-        wallForEachCell[x][y][3] = 1;
-        wallForEachCell[x][y + 1][3] = 1;
-        wallForEachCell[x - 1][y][1] = 1;
-        wallForEachCell[x - 1][y + 1][1] = 1;
-    }
-    else {
-        wallForEachCell[x][y][0] = 1;
-        wallForEachCell[x + 1][y][0] = 1;
-        wallForEachCell[x][y - 1][2] = 1;
-        wallForEachCell[x + 1][y - 1][2] = 1;
-    }
-}
-
-void unBlockCell(struct wall w) {
-    int x = w.x, y = w.y;
-
-    if (w.dir == 'v' || w.dir == 'V') {
-        wallForEachCell[x][y][3] = 0;
-        wallForEachCell[x][y + 1][3] = 0;
-        wallForEachCell[x - 1][y][1] = 0;
-        wallForEachCell[x - 1][y + 1][1] = 0;
-    }
-    else {
-        wallForEachCell[x][y][0] = 0;
-        wallForEachCell[x + 1][y][0] = 0;
-        wallForEachCell[x][y - 1][2] = 0;
-        wallForEachCell[x + 1][y - 1][2] = 0;
-    }
-}
-
 void setWallPos(int PlayerSize) {
 
     wallStartPoint.y += PlayerSize;
@@ -179,29 +145,35 @@ void setWallPos(int PlayerSize) {
         }
 
         if (nextMove == 'l' || nextMove == 'L') {
-            struct wall newWall;
-            newWall.x = (wallStartPoint.x) / PlayerSize;
-            newWall.y = (wallStartPoint.y) / PlayerSize;
-
-            if (wallStartPoint.x != wallEndPoint.x)
-                newWall.dir = 'h';
-            else
-                newWall.dir = 'v';
-
-            //blockCell(newWall);
-
-            validWall(PlayerSize, wallStartPoint, wallEndPoint);
 
             if (validWall(PlayerSize, wallStartPoint, wallEndPoint))
                 break;
             else
-               // unBlockCell(newWall),
                 invalidInput();
         }
 
         drawBoard(PlayerSize);
 
     }
+}
+
+int whoWins() {
+    if (gameState.player1Pos.y == gameState.size - 1)
+        return 1;
+    if (!gameState.player2Pos.y)
+        return 2;
+    return 0;
+}
+
+void drawEnding(int winner) {
+
+    BeginDrawing();
+
+    ClearBackground(ColorAlpha(LIGHTGRAY, 0.5));
+
+    DrawText(TextFormat("Player %i Won!", winner), 220, 400, 50, WHITE);
+
+    EndDrawing();
 }
 
 void graphic() {
@@ -217,47 +189,47 @@ void graphic() {
     Vector2 Player2 = {gameState.player2Pos.x * PlayerSize + PlayerSize / 2, gameState.player2Pos.y * PlayerSize + PlayerSize / 2};
 
     InitWindow(screenWidth, screenHeight, "Quoridor");
+
     InitAudioDevice();
 
     int turnSw = 0;
 
     while (!WindowShouldClose()) {
 
-        nextMove = GetCharPressed();
+        if (!whoWins()) {
+            nextMove = GetCharPressed();
 
-        if (! turnSw)
-            if (nextMove == ' ') {
-                if (gameState.player1UsedWallNo == gameState.player1WallNo);
-                else {
-                    setWallPos(PlayerSize);
+            if (!turnSw)
+                if (nextMove == ' ') {
+                    if (gameState.player1UsedWallNo == gameState.player1WallNo);
+                    else {
+                        setWallPos(PlayerSize);
 
-                    gameState.player1WallList[gameState.player1UsedWallNo].x = (wallStartPoint.x) / PlayerSize;
-                    gameState.player1WallList[gameState.player1UsedWallNo].y = (wallStartPoint.y) / PlayerSize;
+                        gameState.player1WallList[gameState.player1UsedWallNo].x = (wallStartPoint.x) / PlayerSize;
+                        gameState.player1WallList[gameState.player1UsedWallNo].y = (wallStartPoint.y) / PlayerSize;
 
-                    if (wallStartPoint.x != wallEndPoint.x)
-                        gameState.player1WallList[gameState.player1UsedWallNo].dir = 'h';
-                    else gameState.player1WallList[gameState.player1UsedWallNo].dir = 'v';
+                        if (wallStartPoint.x != wallEndPoint.x)
+                            gameState.player1WallList[gameState.player1UsedWallNo].dir = 'h';
+                        else gameState.player1WallList[gameState.player1UsedWallNo].dir = 'v';
 
-                    blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
+                        blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
 
-                    gameState.player1UsedWallNo++;
+                        gameState.player1UsedWallNo++;
 
-                    wallStartPoint.x = 0, wallStartPoint.y = 0;
-                    wallEndPoint.x = 0, wallEndPoint.y = 0;
+                        wallStartPoint.x = 0, wallStartPoint.y = 0;
+                        wallEndPoint.x = 0, wallEndPoint.y = 0;
 
-                    turnSw = 1;
-                }
-            }
-            else
-                nextMoveProcess(&turnSw, &gameState.player1Pos);
-        else
-            if (nextMove == ' ') {
+                        turnSw = 1;
+                    }
+                } else
+                    nextMoveProcess(&turnSw, &gameState.player1Pos);
+            else if (nextMove == ' ') {
                 if (gameState.player2UsedWallNo == gameState.player2WallNo);
                 else {
                     setWallPos(PlayerSize);
 
                     gameState.player2WallList[gameState.player2UsedWallNo].x = (wallStartPoint.x) / PlayerSize;
-                    gameState.player2WallList[gameState.player2UsedWallNo].y = (wallStartPoint.y) /PlayerSize;
+                    gameState.player2WallList[gameState.player2UsedWallNo].y = (wallStartPoint.y) / PlayerSize;
 
                     if (wallStartPoint.x != wallEndPoint.x)
                         gameState.player2WallList[gameState.player2UsedWallNo].dir = 'h';
@@ -272,23 +244,18 @@ void graphic() {
 
                     turnSw = 0;
                 }
-            }
-            else
+            } else
                 nextMoveProcess(&turnSw, &gameState.player2Pos);
-
-        Vector2 Player1 = {gameState.player1Pos.x * PlayerSize + PlayerSize / 2, gameState.player1Pos.y * PlayerSize + PlayerSize / 2};
-        Vector2 Player2 = {gameState.player2Pos.x * PlayerSize + PlayerSize / 2, gameState.player2Pos.y * PlayerSize + PlayerSize / 2};
-
-        drawBoard(PlayerSize);
-
- //*********************
-        for (int i = 0; i < rear; i++) {
-            int x = openList[i].x, y = openList[i].y;
-            Vector2 P = {x * PlayerSize + PlayerSize / 2, y * PlayerSize + PlayerSize / 2};
-            DrawCircleV(P, 5 * PlayerSize / 12, ColorAlpha(RED, 1));
-            DrawText(TextFormat("%i", i), x * PlayerSize + PlayerSize / 2, y * PlayerSize + PlayerSize / 2, 20, BLACK);
         }
-//*********************
+
+        switch (whoWins()) {
+            case 0:
+                drawBoard(PlayerSize); break;
+            case 1:
+                drawEnding(1); break;
+            case 2:
+                drawEnding(2); break;
+        }
 
     }
 

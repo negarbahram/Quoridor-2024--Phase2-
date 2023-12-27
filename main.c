@@ -7,7 +7,6 @@ const int Mx = 1e4 + 10;
 struct game gameState;
 int wallForEachCell[100][100][5];
 
-
 #include "raylib.h"
 #include "graphic.c"
 
@@ -33,21 +32,6 @@ void getGame() {
     gameState.player2UsedWallNo = 0;
 
 }
-
-int NoOneHasWonYet() {
-    if (gameState.player1Pos.x == gameState.size - 1)
-        return 0;
-    if (!gameState.player2Pos.x)
-        return 0;
-    return 1;
-}
-
-/*
- * up = 0
- * right = 1
- * down = 2
- * left = 3
- */
 
 void setWallaroundTheBoard() {
     for (int i = 0; i < gameState.size; i++) {
