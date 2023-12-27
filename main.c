@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "raylib.h"
 #include "graphic.c"
-#include "movingWalls.c"
 
 void getGame() {
 
@@ -36,52 +35,7 @@ int NoOneHasWonYet() {
 
 int main() {
     getGame();
-    int turnSw = 0;
-    while(NoOneHasWonYet()) {
-        graphic();
-        if (!turnSw) {
-            if (nextMove == ' ') {
-                moveWalls();
-            }
-            else {
-                switch (nextMove) {
-                    case 'W':
-                    case 'w':
-                        gameState.player1Pos.x--; break;
-                    case 'S':
-                    case 's':
-                        gameState.player1Pos.x++; break;
-                    case 'A':
-                    case 'a':
-                        gameState.player1Pos.y--; break;
-                    case 'D':
-                    case 'd':
-                        gameState.player1Pos.y++; break;
-                }
-            }
-        }
-        else {
-            if (nextMove == ' ') {
-                moveWalls();
-            }
-            else {
-                switch (nextMove) {
-                    case 'W':
-                    case 'w':
-                        gameState.player2Pos.x--; break;
-                    case 'S':
-                    case 's':
-                        gameState.player2Pos.x++; break;
-                    case 'A':
-                    case 'a':
-                        gameState.player2Pos.y--; break;
-                    case 'D':
-                    case 'd':
-                        gameState.player2Pos.y++; break;
-                }
-            }
-        }
-        turnSw ^= 1;
-    }
+    graphic();
+    return 0;
 }
 

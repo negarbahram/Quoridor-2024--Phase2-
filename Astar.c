@@ -1,4 +1,4 @@
-struct game gameState;
+//struct game gameState;
 int visit[100 + 5][100 + 5];
 int wallForEachCell[100][100][5];
 
