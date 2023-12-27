@@ -1,6 +1,4 @@
-struct game gameState;
-
-int wallForEachCell[100][100][5];
+#include "aStar.c"
 
 int wallCanGo(int PlayerSize, int xStart, int yStart, int xEnd) {
     xStart /= PlayerSize, yStart /= PlayerSize;
@@ -32,6 +30,11 @@ int validWall(int PlayerSize, Vector2 start, Vector2 end) {
         newWall.dir = 'v';
 
     if (overLapWall(newWall))
+        return 0;
+
+    if (!aStarAlgorithm(gameState.player1Pos, gameState.size - 1))
+        return 0;
+    if (!aStarAlgorithm(gameState.player2Pos, 0))
         return 0;
 
     return 1;

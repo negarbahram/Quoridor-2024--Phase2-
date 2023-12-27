@@ -1,5 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+const int Mx = 1e4 + 10;
+
+struct game gameState;
+int wallForEachCell[100][100][5];
+
+
 #include "raylib.h"
 #include "graphic.c"
 
