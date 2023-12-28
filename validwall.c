@@ -1,8 +1,8 @@
 #include "aStar.c"
 
 int wallCanGo(int PlayerSize, int xStart, int yStart, int xEnd) {
-    xStart /= PlayerSize, yStart /= PlayerSize;
-    xEnd /= PlayerSize;
+    xStart = (xStart - 50) / PlayerSize, yStart = (yStart - 100) / PlayerSize;
+    xEnd = (xEnd - 50) / PlayerSize;
     if (xStart != xEnd)
         return (xStart >= 0 && xStart <= gameState.size - 2 && yStart >= 1 && yStart <= gameState.size - 1);
     else
@@ -55,8 +55,8 @@ int validWall(int PlayerSize, Vector2 start, Vector2 end) {
 
     struct wall newWall;
 
-    newWall.x = (start.x) / PlayerSize;
-    newWall.y = (start.y) / PlayerSize;
+    newWall.x = (start.x - 50) / PlayerSize;
+    newWall.y = (start.y - 100) / PlayerSize;
 
     if (start.x != end.x)
         newWall.dir = 'h';
