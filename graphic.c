@@ -1,13 +1,17 @@
-int nextMove, turnSw = 0;
+
+int nextMove, turnSw = 0, invalidInput = 0, moveSw = 0;
 
 typedef enum gameScreen {starting = 0, game, ending} gameScreen;
 
 Vector2 wallStartPoint = {50, 100};
 Vector2 wallEndPoint = {50, 100};
 
-void invalidInput() {
-    Sound Error = LoadSound("resources/errorsound.wav");
-    PlaySound(Error);
+void drawInvalid() {
+    SetTargetFPS(2);
+    Rectangle textBoxSize = {300, 425, 200, 50};
+    DrawRectangleRec(textBoxSize, ColorAlpha(MAROON, 0.8));
+    DrawText("Invalid Input!", textBoxSize.x + 22, textBoxSize.y + 12, 25, WHITE);
+
 }
 
 void nextMoveProcess(int *turn, struct position *player) {
@@ -18,28 +22,28 @@ void nextMoveProcess(int *turn, struct position *player) {
             if (! wallForEachCell[(*player).x][(*player).y][0])
                 (*player).y--, (*turn) ^= 1;
             else
-                invalidInput();
+                invalidInput = 1;
             break;
         case 'S':
         case 's':
             if (! wallForEachCell[(*player).x][(*player).y][2])
                 (*player).y++, (*turn) ^= 1;
             else
-                invalidInput();
+                invalidInput = 1;
             break;
         case 'A':
         case 'a':
             if (! wallForEachCell[(*player).x][(*player).y][3])
                 (*player).x--, (*turn) ^= 1;
             else
-                invalidInput();
+                invalidInput = 1;
             break;
         case 'D':
         case 'd':
             if (! wallForEachCell[(*player).x][(*player).y][1])
                 (*player).x++, (*turn) ^= 1;
             else
-                invalidInput();
+                invalidInput = 1;
             break;
     }
 
@@ -50,13 +54,20 @@ void drawBoard(int PlayerSize) {
     BeginDrawing();
 
     if (! turnSw)
-        DrawText(TextFormat("%s's Turn To Move,", gameState.player1Name), 60, 10, 30, ColorAlpha(MAROON, 0.3));
+        DrawText(TextFormat("%s's Turn To Move,", gameState.player1Name), 7, 5, 25, ColorAlpha(MAROON, 0.3));
     else
-        DrawText(TextFormat("%s's Turn To Move,", gameState.player2Name), 60, 10, 30, ColorAlpha(DARKGREEN, 0.3));
+        DrawText(TextFormat("%s's Turn To Move,", gameState.player2Name), 7, 5, 25, ColorAlpha(DARKGREEN, 0.3));
 
-    DrawText("The Arrow Keys In This Game Are w,d,s,a (Lowercase Or Uppercase).You May Use Them To Move Your Piece.\n "
-             "If You Wish To Place a wall, Press 'space' And Then Use The Arrow Keys To Reach Your Intended location.",
-             60, 50, 13, ColorAlpha(GRAY, 0.7));
+    DrawText("The Arrow Keys In This Game Are w,d,s,a (Lowercase Or Uppercase). You May Use Them To Move Your \nPiece."
+             "If You Wish To Place a wall, Press 'space'."
+             " - Wall Movements Guide :\n"
+             "Press The Mentioned Arrow Keys To Reach Your Intended Location. Press 'x' Or 'X' To Rotate The Wall.\n"
+             "In Case Your Unstable Enough That You Have To Change Your Mind, You May Press 'space'.",
+             5, 33, 13, ColorAlpha(GRAY, 0.7));
+
+    DrawText("Remaining \nWalls :", 730, 7, 10, ColorAlpha(GRAY, 0.7));
+    DrawText(TextFormat("%d", gameState.player1WallNo - gameState.player1UsedWallNo), 740, 40, 20, ColorAlpha(MAROON, 0.3));
+    DrawText(TextFormat("%d", gameState.player2WallNo - gameState.player2UsedWallNo), 740, 62, 20, ColorAlpha(DARKGREEN, 0.3));
 
     Vector2 Player1 = {gameState.player1Pos.x * PlayerSize + PlayerSize / 2 + 50, gameState.player1Pos.y * PlayerSize + PlayerSize / 2 + 100};
     Vector2 Player2 = {gameState.player2Pos.x * PlayerSize + PlayerSize / 2 + 50, gameState.player2Pos.y * PlayerSize + PlayerSize / 2 + 100};
@@ -103,18 +114,26 @@ void drawBoard(int PlayerSize) {
 
     DrawLineEx(wallStartPoint, wallEndPoint, PlayerSize / 8, ColorAlpha(BLUE, 0.2));
 
+    if (invalidInput)
+        drawInvalid();
+
     EndDrawing();
 }
 
 void setWallPos(int PlayerSize) {
 
-    wallStartPoint.y += PlayerSize;
+    wallStartPoint.y += (gameState.size / 2) * PlayerSize;
     wallEndPoint.x += PlayerSize * 2;
-    wallEndPoint.y += PlayerSize;
+    wallEndPoint.y += (gameState.size / 2) * PlayerSize;
 
     while (1) {
 
         nextMove = GetCharPressed();
+
+        if (invalidInput) {
+            invalidInput = 0;
+            SetTargetFPS(10);
+        }
 
         switch (nextMove) {
             case 'W':
@@ -122,33 +141,37 @@ void setWallPos(int PlayerSize) {
                 if (wallCanGo(PlayerSize, wallStartPoint.x, wallStartPoint.y - PlayerSize, wallEndPoint.x))
                     wallStartPoint.y -= PlayerSize, wallEndPoint.y -= PlayerSize;
                 else
-                    invalidInput();
+                    invalidInput = 1;
                 break;
             case 'S':
             case 's':
                 if (wallCanGo(PlayerSize, wallStartPoint.x, wallStartPoint.y + PlayerSize, wallEndPoint.x))
                     wallStartPoint.y += PlayerSize, wallEndPoint.y += PlayerSize;
                 else
-                    invalidInput();
+                    invalidInput = 1;
                 break;
             case 'D':
             case 'd':
                 if (wallCanGo(PlayerSize, wallStartPoint.x + PlayerSize, wallStartPoint.y, wallEndPoint.x + PlayerSize))
                     wallStartPoint.x += PlayerSize, wallEndPoint.x += PlayerSize;
                 else
-                    invalidInput();
+                    invalidInput = 1;
                 break;
             case 'A':
             case 'a':
                 if (wallCanGo(PlayerSize, wallStartPoint.x - PlayerSize, wallStartPoint.y, wallEndPoint.x - PlayerSize))
                     wallStartPoint.x -= PlayerSize, wallEndPoint.x -= PlayerSize;
                 else
-                    invalidInput();
+                    invalidInput = 1;
                 break;
-            case ' ':
+            case 'X':
+            case 'x':
                 if (wallStartPoint.x != wallEndPoint.x) wallStartPoint.x += PlayerSize, wallStartPoint.y -= PlayerSize, wallEndPoint.x -= PlayerSize, wallEndPoint.y += PlayerSize;
                 else wallStartPoint.x -= PlayerSize, wallStartPoint.y += PlayerSize, wallEndPoint.x += PlayerSize, wallEndPoint.y -= PlayerSize;
                 break;
+            case ' ':
+                moveSw = 1;
+                return;
         }
 
         if (nextMove == 'l' || nextMove == 'L') {
@@ -156,7 +179,7 @@ void setWallPos(int PlayerSize) {
             if (validWall(PlayerSize, wallStartPoint, wallEndPoint))
                 break;
             else
-                invalidInput();
+                invalidInput = 1;
         }
 
         drawBoard(PlayerSize);
@@ -178,18 +201,21 @@ void drawEnding(int winner) {
 
     ClearBackground(ColorAlpha(LIGHTGRAY, 0.5));
 
-    DrawText(TextFormat("Player %i Won!", winner), 220, 400, 50, WHITE);
+    if (winner == 1)
+        DrawText(TextFormat("%s Won!", gameState.player1Name), 220, 400, 50, WHITE);
+    else
+        DrawText(TextFormat("%s Won!", gameState.player2Name), 220, 400, 50, WHITE);
 
     EndDrawing();
 }
 
-void drawStating() {
+void drawStarting() {
 
     BeginDrawing();
 
     ClearBackground(ColorAlpha(LIGHTGRAY, 0.7));
 
-    DrawText("Use  'l'  or  'L'  to confirm your input and  'e'  or  'E'  to erase it.", 20, 120, 20, ColorAlpha(GRAY, 1));
+    DrawText("Use  'L'  to confirm your input and  'E'  to erase it.", 20, 120, 20, ColorAlpha(GRAY, 1));
 
     DrawText("Please Enter The Size Of Your Board :", 20, 220, 25, WHITE);
 
@@ -259,21 +285,21 @@ void drawStating() {
                 else {
                     DrawText(player2Name.value, (int) textBoxPlayer2Name.x + 13, (int) textBoxPlayer2Name.y + 7, 20,
                              ColorAlpha(GRAY, 0.7));
-                    DrawText("Press 'l' or 'L' To Begin!", 115, 650, 20, ColorAlpha(GRAY, 1));
+                    DrawText("Press 'L' To Begin!", 115, 650, 20, ColorAlpha(GRAY, 1));
                 }
             }
         }
     }
 
     EndDrawing();
-
 }
 
 void getString(struct stringInStartingScreen *s) {
 
+    // Write and save string while the player is typing
     while (nextMove > 0) {
 
-        if (nextMove == 'l' || nextMove == 'L') (*s).isSet = 1;
+        if (nextMove == 'L'&& (*s).realLength) (*s).isSet = 1;
 
         else if (nextMove >= (*s).validValueS && nextMove <= (*s).validValueE && (*s).realLength < (*s).validLength) {
             (*s).value[(*s).realLength] = (char) nextMove;
@@ -281,7 +307,7 @@ void getString(struct stringInStartingScreen *s) {
             (*s).realLength++;
         }
 
-        else if (nextMove == 'e' || nextMove == 'E') {
+        else if (nextMove == 'E') {
             (*s).realLength--;
             if ((*s).realLength < 0) (*s).realLength = 0;
             (*s).value[(*s).realLength] = '\0';
@@ -300,7 +326,7 @@ void graphic() {
     //DrawScreen Related Values :
     int PlayerSize;
     int screenWidth = 800;
-    int screenHeight = 800;
+    int screenHeight = 810;
 
     //Setting Input Data To Null Before Reading Them :
     getReadyToRead();
@@ -322,7 +348,7 @@ void graphic() {
                 //Read and Save Board Size, Number Of Walls For Each Player And Their Names :
                 if (!size.isSet) //User Is Not Done Typing Board Size.
                     getString(&size);
-                else { //User Is Done Typing Board Size And Will Now Start Typing The Number Of walls For Each Player.
+                else { //User Is Done Typing Board Size And Will Now Start Typing The Number Of Walls For Each Player.
                     if (!wallNo.isSet)
                         getString(&wallNo);
                     else {
@@ -334,75 +360,90 @@ void graphic() {
                             else {
                                 getStarted(size, wallNo, player1Name, player2Name);
 
-                                if (nextMove == 'l' || nextMove == 'L')
+                                // Starting The Real Game :
+                                if (nextMove == 'L')
                                     currentScreen = game;
                             }
                         }
                     }
                 }
-                drawStating();
+                drawStarting();
                 break;
+
             case game:
 
                 PlayerSize = (screenWidth - 100) / gameState.size;
-                Vector2 Player1 = {gameState.player1Pos.x * PlayerSize + PlayerSize / 2 + 50,
-                                   gameState.player1Pos.y * PlayerSize + PlayerSize / 2 + 100};
-                Vector2 Player2 = {gameState.player2Pos.x * PlayerSize + PlayerSize / 2 + 50,
-                                   gameState.player2Pos.y * PlayerSize + PlayerSize / 2 + 100};
 
                 if (!whoWins()) {
                     nextMove = GetCharPressed();
 
-                    if (!turnSw)
+                    if (invalidInput) {
+                        invalidInput = 0;
+                        SetTargetFPS(10);
+                    }
+
+                    if (!turnSw) {
                         if (nextMove == ' ') {
                             if (gameState.player1UsedWallNo == gameState.player1WallNo) {
-                                invalidInput();
+                                invalidInput = 1;
                             } else {
                                 setWallPos(PlayerSize);
 
-                                gameState.player1WallList[gameState.player1UsedWallNo].x =
-                                        (wallStartPoint.x - 50) / PlayerSize;
-                                gameState.player1WallList[gameState.player1UsedWallNo].y =
-                                        (wallStartPoint.y - 100) / PlayerSize;
+                                if (!moveSw) {
+                                    gameState.player1WallList[gameState.player1UsedWallNo].x =
+                                            (wallStartPoint.x - 50) / PlayerSize;
+                                    gameState.player1WallList[gameState.player1UsedWallNo].y =
+                                            (wallStartPoint.y - 100) / PlayerSize;
 
-                                if (wallStartPoint.x != wallEndPoint.x)
-                                    gameState.player1WallList[gameState.player1UsedWallNo].dir = 'h';
-                                else gameState.player1WallList[gameState.player1UsedWallNo].dir = 'v';
+                                    if (wallStartPoint.x != wallEndPoint.x)
+                                        gameState.player1WallList[gameState.player1UsedWallNo].dir = 'h';
+                                    else gameState.player1WallList[gameState.player1UsedWallNo].dir = 'v';
 
-                                blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
+                                    blockCell(gameState.player1WallList[gameState.player1UsedWallNo]);
 
-                                gameState.player1UsedWallNo++;
+                                    gameState.player1UsedWallNo++;
+                                    turnSw = 1;
+                                } else
+                                    moveSw = 0;
 
                                 wallStartPoint.x = 50, wallStartPoint.y = 100;
                                 wallEndPoint.x = 50, wallEndPoint.y = 100;
 
-                                turnSw = 1;
                             }
                         } else
                             nextMoveProcess(&turnSw, &gameState.player1Pos);
-                    else if (nextMove == ' ') {
-                        if (gameState.player2UsedWallNo == gameState.player2WallNo);
-                        else {
-                            setWallPos(PlayerSize);
+                    }
+                    else {
+                        if (nextMove == ' ') {
+                            if (gameState.player2UsedWallNo == gameState.player2WallNo)
+                                invalidInput = 1;
+                            else {
+                                setWallPos(PlayerSize);
 
-                            gameState.player2WallList[gameState.player2UsedWallNo].x = (wallStartPoint.x - 50) / PlayerSize;
-                            gameState.player2WallList[gameState.player2UsedWallNo].y = (wallStartPoint.y - 100) / PlayerSize;
+                                if (!moveSw) {
+                                    gameState.player2WallList[gameState.player2UsedWallNo].x =
+                                            (wallStartPoint.x - 50) / PlayerSize;
+                                    gameState.player2WallList[gameState.player2UsedWallNo].y =
+                                            (wallStartPoint.y - 100) / PlayerSize;
 
-                            if (wallStartPoint.x != wallEndPoint.x)
-                                gameState.player2WallList[gameState.player2UsedWallNo].dir = 'h';
-                            else gameState.player2WallList[gameState.player2UsedWallNo].dir = 'v';
+                                    if (wallStartPoint.x != wallEndPoint.x)
+                                        gameState.player2WallList[gameState.player2UsedWallNo].dir = 'h';
+                                    else gameState.player2WallList[gameState.player2UsedWallNo].dir = 'v';
 
-                            blockCell(gameState.player2WallList[gameState.player2UsedWallNo]);
+                                    blockCell(gameState.player2WallList[gameState.player2UsedWallNo]);
 
-                            gameState.player2UsedWallNo++;
+                                    gameState.player2UsedWallNo++;
+                                    turnSw = 0;
+                                } else
+                                    moveSw = 0;
 
-                            wallStartPoint.x = 50, wallStartPoint.y = 100;
-                            wallEndPoint.x = 50, wallEndPoint.y = 100;
+                                wallStartPoint.x = 50, wallStartPoint.y = 100;
+                                wallEndPoint.x = 50, wallEndPoint.y = 100;
 
-                            turnSw = 0;
-                        }
-                    } else
-                        nextMoveProcess(&turnSw, &gameState.player2Pos);
+                            }
+                        } else
+                            nextMoveProcess(&turnSw, &gameState.player2Pos);
+                    }
                     drawBoard(PlayerSize);
                 }
                 else
@@ -411,7 +452,7 @@ void graphic() {
         }
 
     }
-    CloseAudioDevice();
+
     CloseWindow();
 
 }

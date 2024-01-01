@@ -6,6 +6,10 @@ struct pPair {
     int x, y;
 } openList[100 * 100 + 10];
 
+struct cell {
+    int f, g, h;
+} cellDetails[100 + 10][100 + 10];
+
 void queInsert(int element, int x, int y) {
     int pos = rear;
     while (pos > front && openList[pos - 1].f > element)
@@ -25,16 +29,13 @@ int queSize() {
     return rear - front;
 }
 
-struct cell {
-    int f, g, h;
-} cellDetails[100 + 10][100 + 10];
-
 int aStarAlgorithm(struct position startCell, int row) {
 
     front = 0, rear = 0;
 
     memset(closedList, 0, sizeof closedList);
 
+    // set all values to maximum :
     for (int i = 0; i < gameState.size; i++)
         for (int j = 0; j < gameState.size; j++) {
             cellDetails[i][j].f = Mx;
@@ -42,10 +43,12 @@ int aStarAlgorithm(struct position startCell, int row) {
             cellDetails[i][j].h = Mx;
         }
 
+    // update values for the root :
     cellDetails[startCell.x][startCell.y].g = 0;
     cellDetails[startCell.x][startCell.y].h = abs(row - startCell.y);
     cellDetails[startCell.x][startCell.y].f = abs(row - startCell.y);
 
+    // insert the root to openlist
     queInsert(cellDetails[startCell.x][startCell.y].f, startCell.x, startCell.y);
 
     while (queSize() > 0) {
@@ -56,6 +59,7 @@ int aStarAlgorithm(struct position startCell, int row) {
 
          closedList[x][y] = 1;
 
+         // the cell on the top of the root :
          if (!wallForEachCell[x][y][0]) {
              if (y - 1 == row) return 1;
 
@@ -71,6 +75,7 @@ int aStarAlgorithm(struct position startCell, int row) {
              }
          }
 
+        // the cell on the right side of the root :
         if (!wallForEachCell[x][y][1]) {
 
             int gNew = cellDetails[x][y].g + 1;
@@ -85,6 +90,7 @@ int aStarAlgorithm(struct position startCell, int row) {
             }
         }
 
+        // the cell on the left side of the root :
         if (!wallForEachCell[x][y][2]) {
             if (y + 1 == row) return 1;
 
@@ -100,6 +106,7 @@ int aStarAlgorithm(struct position startCell, int row) {
             }
         }
 
+        // the cell below the root :
         if (!wallForEachCell[x][y][3]) {
 
             int gNew = cellDetails[x][y].g + 1;

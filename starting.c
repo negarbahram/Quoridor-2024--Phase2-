@@ -2,6 +2,7 @@ struct stringInStartingScreen size, wallNo, player1Name, player2Name;
 
 void setWallaroundTheBoard() {
 
+    // set walls around the board so the player's piece doesn't run away :
     memset(wallForEachCell, 0, sizeof wallForEachCell);
 
     for (int i = 0; i < gameState.size; i++) {

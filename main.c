@@ -13,6 +13,7 @@ int wallForEachCell[100][100][5];
 #include "validwall.c"
 #include "graphic.c"
 
+
 int main() {
 
     graphic();

@@ -1,6 +1,8 @@
 #include "aStar.c"
 
 int wallCanGo(int PlayerSize, int xStart, int yStart, int xEnd) {
+
+    // prevent the wall from going on the edge of the board
     xStart = (xStart - 50) / PlayerSize, yStart = (yStart - 100) / PlayerSize;
     xEnd = (xEnd - 50) / PlayerSize;
     if (xStart != xEnd)
@@ -20,6 +22,7 @@ int overLapWall(struct wall newWall) {
 void blockCell(struct wall w) {
     int x = w.x, y = w.y;
 
+    // block edges of the graph :
     if (w.dir == 'v' || w.dir == 'V') {
         wallForEachCell[x][y][3] = 1;
         wallForEachCell[x][y + 1][3] = 1;
@@ -37,6 +40,7 @@ void blockCell(struct wall w) {
 void unBlockCell(struct wall w) {
     int x = w.x, y = w.y;
 
+    // unblock edges of the graph :
     if (w.dir == 'v' || w.dir == 'V') {
         wallForEachCell[x][y][3] = 0;
         wallForEachCell[x][y + 1][3] = 0;
@@ -63,16 +67,16 @@ int validWall(int PlayerSize, Vector2 start, Vector2 end) {
     else
         newWall.dir = 'v';
 
-    if (overLapWall(newWall))
+    if (overLapWall(newWall)) // check if there is an overlap with another wall :
         return 0;
 
-    blockCell(newWall);
+    blockCell(newWall); // assume it is a valid wall and check if it doesn't block the way for players :
 
-    if (!aStarAlgorithm(gameState.player1Pos, gameState.size - 1)) {
+    if (!aStarAlgorithm(gameState.player1Pos, gameState.size - 1)) { // see if there is a way for 1 to win :
         unBlockCell(newWall);
         return 0;
     }
-    if (!aStarAlgorithm(gameState.player2Pos, 0)) {
+    if (!aStarAlgorithm(gameState.player2Pos, 0)) { // check if there is a way for player 2 to win :
         unBlockCell(newWall);
         return 0;
     }
